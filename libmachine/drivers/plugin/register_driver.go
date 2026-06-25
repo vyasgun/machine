@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/rpc"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/crc-org/machine/libmachine/drivers"
@@ -41,12 +42,29 @@ Please use this plugin through the main 'crc' binary.
 	}
 	rpc.HandleHTTP()
 
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	socketDir := os.Getenv("CRC_SOCKET_DIR")
+	if socketDir == "" {
+		socketDir = filepath.Join(os.TempDir(), "crc-machine")
+	}
+
+	if err := os.MkdirAll(socketDir, 0700); err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating socket directory: %s\n", err)
+		os.Exit(1)
+	}
+
+	socketPath := filepath.Join(socketDir, "plugin.sock")
+	os.Remove(socketPath)
+	listener, err := net.Listen("unix", socketPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error loading RPC server: %s\n", err)
 		os.Exit(1)
 	}
 	defer listener.Close()
+	if err := os.Chmod(socketPath, 0600); err != nil {
+		_ = listener.Close()
+		fmt.Fprintf(os.Stderr, "Error setting socket permissions: %s\n", err)
+		os.Exit(1)
+	}
 
 	fmt.Println(listener.Addr())
 
