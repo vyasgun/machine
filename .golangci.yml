@@ -8,6 +8,5 @@ linters:
     - gofmt
     - gosec
     - gocritic
-    - deadcode
     - misspell
     - revive

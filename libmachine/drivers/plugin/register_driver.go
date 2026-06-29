@@ -77,7 +77,7 @@ Please use this plugin through the main 'crc' binary.
 	fmt.Println(listener.Addr())
 
 	go func() {
-		//#nosec G703 localhost-only RPC server
+		//#nosec G114 localhost-only RPC server
 		_ = http.Serve(&loggingListener{Listener: listener}, nil)
 	}()
 

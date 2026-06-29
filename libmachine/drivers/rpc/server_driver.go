@@ -43,7 +43,7 @@ func (r *RPCServerDriver) logRPC(op string, level log.Level, extra log.Fields) {
 	fields := log.Fields{"operation": op}
 	if r.ActualDriver != nil {
 		func() {
-			defer func() { recover() }()
+			defer func() { _ = recover() }()
 			if name := r.ActualDriver.GetMachineName(); name != "" {
 				fields["machine"] = name
 			}
