@@ -51,6 +51,15 @@ Please use this plugin through the main 'crc' binary.
 		fmt.Fprintf(os.Stderr, "Error creating socket directory: %s\n", err)
 		os.Exit(1)
 	}
+	socketDirInfo, err := os.Stat(socketDir)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error checking socket directory: %s\n", err)
+		os.Exit(1)
+	}
+	if !socketDirInfo.IsDir() || socketDirInfo.Mode().Perm()&0077 != 0 {
+		fmt.Fprintf(os.Stderr, "Socket directory must be owner-only: %s\n", socketDir)
+		os.Exit(1)
+	}
 
 	socketPath := filepath.Join(socketDir, "plugin.sock")
 	os.Remove(socketPath)
