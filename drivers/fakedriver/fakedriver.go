@@ -19,7 +19,7 @@ func (d *Driver) DriverName() string {
 	return "Driver"
 }
 
-func (d *Driver) UpdateConfigRaw(rawData []byte) error {
+func (d *Driver) UpdateConfigRaw(_ []byte) error {
 	return nil
 }
 

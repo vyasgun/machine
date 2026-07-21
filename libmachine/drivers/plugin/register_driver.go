@@ -20,6 +20,32 @@ var (
 	heartbeatTimeout = 10 * time.Second
 )
 
+type loggingListener struct {
+	net.Listener
+}
+
+func (l *loggingListener) Accept() (net.Conn, error) {
+	conn, err := l.Listener.Accept()
+	if err != nil {
+		return nil, err
+	}
+	log.WithField("remote", conn.RemoteAddr().String()).Info("RPC connection accepted")
+	return &loggingConn{Conn: conn, start: time.Now()}, nil
+}
+
+type loggingConn struct {
+	net.Conn
+	start time.Time
+}
+
+func (c *loggingConn) Close() error {
+	log.WithFields(log.Fields{
+		"remote":   c.RemoteAddr().String(),
+		"duration": time.Since(c.start),
+	}).Info("RPC connection closed")
+	return c.Conn.Close()
+}
+
 func RegisterDriver(d drivers.Driver) {
 	if os.Getenv(localbinary.PluginEnvKey) != localbinary.PluginEnvVal {
 		fmt.Fprintf(os.Stderr, `This is a hypervisor plugin binary for CodeReady Containers.
@@ -78,7 +104,8 @@ Please use this plugin through the main 'crc' binary.
 	fmt.Println(listener.Addr())
 
 	go func() {
-		_ = http.Serve(listener, nil)
+		//#nosec G114 localhost-only RPC server
+		_ = http.Serve(&loggingListener{Listener: listener}, nil)
 	}()
 
 	for {
