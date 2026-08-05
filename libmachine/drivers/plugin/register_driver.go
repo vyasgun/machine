@@ -68,7 +68,7 @@ Please use this plugin through the main 'crc' binary.
 	}
 	rpc.HandleHTTP()
 
-	socketDir := os.Getenv("CRC_SOCKET_DIR")
+	socketDir := os.Getenv(localbinary.PluginEnvSocketDir)
 	if socketDir == "" {
 		socketDir = filepath.Join(os.TempDir(), "crc-machine")
 	}
